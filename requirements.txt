@@ -1,6 +1,6 @@
-tensorflow == 2.15.0
-tensorflow-estimator
-tensorflow-gnn
-tensorflow-probability==0.21.0
-keras == 2.15.0
+tensorflow == 2.12.0
+tensorflow-estimator == 2.12.0
+tensorflow-gnn == 0.5.1
+tensorflow-probability==0.20.1
+keras == 2.12.0
 numba

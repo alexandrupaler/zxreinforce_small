@@ -53,10 +53,10 @@ args = vars(parser.parse_args())
 ### Hyperparameters of the PPO algorithm-----------------------------------------------------------
 
 # Amount of environments executed in different CPU processes
-n_envs = 90
+n_envs = 2
 
 # Number of steps sampled per environement in one trajectory before training
-max_sample_steps = 1000
+max_sample_steps = 10
 # Steps until environement resets
 max_steps = 200
 # Give countdown to NN if close to finish trajectory
@@ -78,7 +78,7 @@ anneal_clip_range=True
 target_kl = 0.01
 # How many individual steps to use in one training update.
 # Minibatchsize should be divisible by amount of parallel GPUs used
-minibatch_size = 3000
+minibatch_size = 10
 # Coeff of entropy in loss function. If higher leads to more exploration
 ent_coeff=args["ent_coeff"]
 # Linearly anneal entropy coeff
@@ -238,7 +238,7 @@ buffer = TrajectoryBuffer(n_envs, max_sample_steps)
 with strategy.scope():
     actor_model = build_gnn_actor_model(graph_tensor_spec=graph_tensor_spec)
     critic_model = build_gnn_critic_model(graph_tensor_spec=graph_tensor_spec)
-    optimizer = keras.optimizers.legacy.Adam(learning_rate=learning_rate, epsilon=adam_epsilon, beta_1=adam_beta_1)
+    optimizer = keras.optimizers.Adam(learning_rate=learning_rate, epsilon=adam_epsilon, beta_1=adam_beta_1)
 
 
 # The RL Agent
