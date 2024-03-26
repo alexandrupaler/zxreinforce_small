@@ -1,6 +1,6 @@
 import json
 
-# import tensorflow_probability as tfp
+import tensorflow_probability as tfp
 import tensorflow as tf
 
 import numpy as np
@@ -107,15 +107,16 @@ class PPOAgentPara():
                 "normalize_advantages": self.normalize_advantages,
                 "operation_seed": self.operation_seed,
                 "abs_grad_clip": self.abs_grad_clip}
-    
 
+    @tf.autograph.experimental.do_not_convert
     def _get_distribution(self, observation:GraphTensor, mask:tf.constant):
         """observation: batched GraphTensor,
         mask: batched tf.bool, mask of valid actions,
         returns: tfp.distributions.Categorical, categorical distribution of logits"""
         edge_dims = observation.edge_sets["edges"].sizes
         node_dims = observation.node_sets["spiders"].sizes
-        n_batched = len(edge_dims)
+        # n_batched = len(edge_dims)
+        n_batched = edge_dims.shape[0]
 
         # Get log probabilities of actions for each observation
         logits = self.actor_model(observation)
@@ -148,11 +149,8 @@ class PPOAgentPara():
         distr = tfp.distributions.Categorical(logits=logits, validate_args=True, 
                                               allow_nan_stats=False)
         return distr
-    
-        
-    
-    
-    
+
+
     @tf.function(reduce_retracing=True)
     def sample_action_logits_trajectory(self, observation:GraphTensor, mask:tf.constant)->tuple:
         """ observation: batched GraphTensor,

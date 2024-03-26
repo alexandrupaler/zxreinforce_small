@@ -73,23 +73,28 @@ def xbatch_merge_list_of_observations_context_part1(observations: list) -> tuple
     to_add = np.repeat(cum_node_sizes, edge_sizes)
 
 
-    return (tf.constant(np.concatenate(color_list)), 
-            tf.constant(np.concatenate(angle_list)), 
+    return (tf.constant(np.concatenate(color_list)),
+            tf.constant(np.concatenate(angle_list)),
             tf.constant(np.concatenate(selected_node_list)),
-            tf.constant(np.stack(context_list), dtype=tf.float32), 
-            tf.constant(np.concatenate(selected_edges_list)), 
-            tf.constant(np.concatenate(source_list)), 
+            tf.constant(np.stack(context_list), dtype=tf.float32),
+            tf.constant(np.concatenate(selected_edges_list)),
+            tf.constant(np.concatenate(source_list)),
             tf.constant(np.concatenate(target_list)),
-            tf.constant(node_sizes), 
-            tf.constant(edge_sizes), 
+            tf.constant(node_sizes),
+            tf.constant(edge_sizes),
             tf.constant(to_add, dtype=tf.int32))
 
-@tf.function(reduce_retracing=True)
-def xbatch_merge_list_of_observations_context_part2(color_list: tf.constant, angle_list: tf.constant, 
-                                                    selected_node_list: tf.constant, context_list: tf.constant,
-                                                   selected_edges_list: tf.constant, source_list: tf.constant, 
-                                                   target_list: tf.constant, node_sizes: tf.constant, 
-                                                   edge_sizes: tf.constant, to_add: tf.constant)-> GraphTensor:
+# @tf.function(reduce_retracing=True)
+def xbatch_merge_list_of_observations_context_part2(color_list: tf.constant,
+                                                    angle_list: tf.constant,
+                                                    selected_node_list: tf.constant,
+                                                    context_list: tf.constant,
+                                                   selected_edges_list: tf.constant,
+                                                    source_list: tf.constant,
+                                                   target_list: tf.constant,
+                                                    node_sizes: tf.constant,
+                                                   edge_sizes: tf.constant,
+                                                    to_add: tf.constant)-> GraphTensor:
     
     """Input: Graph features as tf.constants,
 
@@ -127,7 +132,7 @@ def xbatch_merge_list_of_observations_context_part2(color_list: tf.constant, ang
         },
         context=Context.from_fields(
             features={"context_feat": context_list},
-            sizes=tf.ones((len(node_sizes),1)),
+            sizes=tf.ones((len(node_sizes),1), dtype=tf.int32),
             shape=(len(node_sizes),)
         ),
     )

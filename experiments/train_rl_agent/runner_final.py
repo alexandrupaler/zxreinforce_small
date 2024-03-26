@@ -238,7 +238,7 @@ buffer = TrajectoryBuffer(n_envs, max_sample_steps)
 with strategy.scope():
     actor_model = build_gnn_actor_model(graph_tensor_spec=graph_tensor_spec)
     critic_model = build_gnn_critic_model(graph_tensor_spec=graph_tensor_spec)
-    optimizer = keras.optimizers.Adam(learning_rate=learning_rate, epsilon=adam_epsilon, beta_1=adam_beta_1)
+    optimizer = keras.optimizers.legacy.Adam(learning_rate=learning_rate, epsilon=adam_epsilon, beta_1=adam_beta_1)
 
 
 # The RL Agent
