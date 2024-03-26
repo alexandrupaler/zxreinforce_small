@@ -1,6 +1,8 @@
 import json
+
+# import tensorflow_probability as tfp
 import tensorflow as tf
-import tensorflow_probability as tfp
+
 import numpy as np
 from pathlib import Path
 
@@ -107,7 +109,7 @@ class PPOAgentPara():
                 "abs_grad_clip": self.abs_grad_clip}
     
 
-    def _get_distribution(self, observation:GraphTensor, mask:tf.constant)->tfp.distributions.Categorical:
+    def _get_distribution(self, observation:GraphTensor, mask:tf.constant):
         """observation: batched GraphTensor,
         mask: batched tf.bool, mask of valid actions,
         returns: tfp.distributions.Categorical, categorical distribution of logits"""

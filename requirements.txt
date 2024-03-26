@@ -1,5 +1,6 @@
-keras
-tensorflow
+tensorflow == 2.15.0
 tensorflow-estimator
 tensorflow-gnn
-tensorflow-probability
+tensorflow-probability==0.21.0
+keras == 2.15.0
+numba

@@ -12,16 +12,21 @@ from pathlib import Path
 
 import functools
 import random
-import keras
+# import keras
 
 import numpy as np
-import tensorflow as tf
+
+
+import tensorflow_probability as tfp
 import tensorflow_gnn as tfgnn
+import tensorflow as tf
+import keras
+
 import tensorflow_gnn.proto.graph_schema_pb2 as schema_pb2
 from google.protobuf import text_format
 
 import zxreinforce.own_constants as oc
-from zxreinforce.ZX_env import  ZXCalculus
+from zxreinforce.ZX_env import ZXCalculus
 from zxreinforce.rl_schemas import OBSERVATION_SCHEMA_ZX_final
 from zxreinforce.VecAsyncEnvironment import VecZXCalculus, AsyncVectorEnv
 from zxreinforce.Resetters import Resetter_ZERO_PI_PIHALF_ARB_hada
