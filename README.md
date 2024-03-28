@@ -1,3 +1,12 @@
+```
+add-apt-repository ppa:deadsnakes/ppa
+apt update
+apt install git
+apt install python3.10
+curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
+pip3.10 install -r requirements.txt
+```
+
 # This is a repository that does not include the saved data
 
 # ZXreinforce
