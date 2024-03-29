@@ -1,5 +1,5 @@
-
 import sys
+
 sys.path.append("../../")
 sys.path.append("../../../")
 
@@ -15,7 +15,6 @@ import random
 # import keras
 
 import numpy as np
-
 
 import tensorflow_probability as tfp
 import tensorflow_gnn as tfgnn
@@ -37,26 +36,24 @@ from zxreinforce.RL_Models import build_gnn_actor_model, build_gnn_critic_model
 from zxreinforce.batch_utils import batch_mask_combined, batch_obs_combined_traj
 from zxreinforce.action_conversion_utils import get_action_name, get_action_type_idx
 
-
 parser = argparse.ArgumentParser(description="Runner Parser",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("--ent_coeff", default=0.1, type=float, 
+parser.add_argument("--ent_coeff", default=0.1, type=float,
                     help="Entropy coefficient in loss function")
-parser.add_argument("--learning_rate", default=3e-4, type=float, 
+parser.add_argument("--learning_rate", default=3e-4, type=float,
                     help="Learning rate of ADAM optimizer")
-parser.add_argument("--add_reward_per_step", default=0., type=float, 
+parser.add_argument("--add_reward_per_step", default=0., type=float,
                     help="Reward per step, should be non-positive")
 args = vars(parser.parse_args())
-
 
 ### Hyperparameters of the PPO algorithm-----------------------------------------------------------
 
 # Amount of environments executed in different CPU processes
-n_envs = 2
+n_envs = 90
 
 # Number of steps sampled per environement in one trajectory before training
-max_sample_steps = 10
+max_sample_steps = 1000
 # Steps until environement resets
 max_steps = 200
 # Give countdown to NN if close to finish trajectory
@@ -67,37 +64,36 @@ abs_grad_clip = 100
 # Maximum number of gradient updates after one trajectoruy sampling period
 train_iterations = 10
 # Discount factor for returns
-gamma=0.99
+gamma = 0.99
 # Trade-off between bias and variance in return estimation: If big, high variance, low bias
-lam=0.9
+lam = 0.9
 # Ratio determines how far action prob can diverge during training, if big high divergence possible
-clip_ratio=0.2
+clip_ratio = 0.2
 # Linearly anneal clip range
-anneal_clip_range=True
+anneal_clip_range = True
 # KL determines how far policy can diverge during training before sampling new trajectories
 target_kl = 0.01
 # How many individual steps to use in one training update.
 # Minibatchsize should be divisible by amount of parallel GPUs used
-minibatch_size = 10
+minibatch_size = 3000
 # Coeff of entropy in loss function. If higher leads to more exploration
-ent_coeff=args["ent_coeff"]
+ent_coeff = args["ent_coeff"]
 # Linearly anneal entropy coeff
-anneal_entropy=True
+anneal_entropy = True
 # Coeff of value loss in loss function. If higher leads to bigger gradient update steps in critic model
-value_coeff=0.5
+value_coeff = 0.5
 # Rescale gradients of minibtach such that norm doesnt exceed this
-grad_norm_clip=0.5
+grad_norm_clip = 0.5
 
 # Adam optimizer parameters
-learning_rate=args["learning_rate"]
-adam_epsilon=1e-7
-adam_beta_1=0.9
+learning_rate = args["learning_rate"]
+adam_epsilon = 1e-7
+adam_beta_1 = 0.9
 # Linearly decrease learning rate during training (decreased after each set of trajetcory sampling)
-anneal_lr=True
+anneal_lr = True
 
 # Save models every save_every updates
 save_every = 10
-
 
 # Environment params----------------------------------------------------------------------------------
 # Negative reward per step to encourage environment to cancel early
@@ -106,7 +102,6 @@ add_reward_per_step = args["add_reward_per_step"]
 check_consistencty = False
 # allow stop action
 dont_allow_stop = True
-
 
 # Use multiple cpus for environment
 multiprocess = True
@@ -117,7 +112,6 @@ seed = 0
 # Copy pyh=thon files to result folder
 COPY_Files = True
 
-
 # Log histogram of selected actions
 log_action_hist = True
 # Log reward of completed episodes
@@ -126,20 +120,17 @@ log_episode_reward = True
 # Total timesteps to take in the environment
 total_timesteps = 36e6
 
-
 # Params for initial env observations
-min_spiders=10
-max_spiders=15
-n_in_min=1
-n_in_max=3
-pi_fac=0.4
-pi_half_fac=0.4
-arb_fac=0.4
-p_hada=0.2
-min_mean_neighbours=2
-max_mean_neighbours=4
-
-
+min_spiders = 10
+max_spiders = 15
+n_in_min = 1
+n_in_max = 3
+pi_fac = 0.4
+pi_half_fac = 0.4
+arb_fac = 0.4
+p_hada = 0.2
+min_mean_neighbours = 2
+max_mean_neighbours = 4
 
 # Set seeds, This makes environments deterministic, but not training
 # see https://jackd.github.io/posts/deterministic-tf-part-1/.
@@ -149,15 +140,12 @@ tf.random.set_seed(seed)
 tf.experimental.numpy.random.seed(seed)
 os.environ["PYTHONHASHSEED"] = str(seed)
 
-
-
 # Make sure experiences can be divided into minibatches
-assert((n_envs * max_sample_steps) % minibatch_size == 0)
-
+assert ((n_envs * max_sample_steps) % minibatch_size == 0)
 
 # Directory to save results
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-exp_dir =  Path('runs/para/' + current_time)
+exp_dir = Path('runs/para/' + current_time)
 exp_dir.mkdir(parents=True, exist_ok=True)
 
 # Log file
@@ -171,14 +159,12 @@ save_dir = exp_dir / "saved_agent"
 save_dir.mkdir(parents=True, exist_ok=True)
 
 if COPY_Files:
-    shutil.copyfile("runner_final.py", 
+    shutil.copyfile("runner_final.py",
                     str(exp_dir / "runner_final.py"))
     shutil.copyfile("../../zxreinforce/PPO_Agent_mult_GPU.py", str(exp_dir / "PPO_Agent_mult_GPU.py"))
     shutil.copyfile("../../zxreinforce/ZX_env.py", str(exp_dir / "ZX_env.py"))
     shutil.copyfile("../../zxreinforce/RL_Models.py", str(exp_dir / "RL_Models.py"))
     shutil.copyfile("../../zxreinforce/own_constants.py", str(exp_dir / "own_constants.py"))
-                    
-
 
 # Strategy for distributed GPU training
 strategy = tf.distribute.MirroredStrategy(["GPU:0", "GPU:1"])
@@ -191,42 +177,46 @@ if multiprocess:
     env_gen = []
     for idx in range(n_envs):
         resetterr = Resetter_ZERO_PI_PIHALF_ARB_hada(n_in_min,
-                                    n_in_max,
-                                    min_spiders,
-                                    max_spiders,
-                                    pi_fac,
-                                    pi_half_fac,
-                                    arb_fac,
-                                    p_hada,
-                                    min_mean_neighbours,
-                                    max_mean_neighbours,
-                                    np.random.default_rng(seed+idx))
+                                                     n_in_max,
+                                                     min_spiders,
+                                                     max_spiders,
+                                                     pi_fac,
+                                                     pi_half_fac,
+                                                     arb_fac,
+                                                     p_hada,
+                                                     min_mean_neighbours,
+                                                     max_mean_neighbours,
+                                                     np.random.default_rng(seed + idx))
+
+
         def get_env(reseter):
-            return ZXCalculus(max_steps=max_steps, 
+            return ZXCalculus(max_steps=max_steps,
                               add_reward_per_step=add_reward_per_step,
                               resetter=reseter,
                               check_consistencty=check_consistencty,
                               count_down_from=count_down_from,
                               dont_allow_stop=dont_allow_stop)
+
+
         # Fuctools.partial makes sure that the right resetter is used
         env_gen.append(functools.partial(get_env, resetterr))
     env = AsyncVectorEnv(env_gen)
 else:
-    resetter_list=[Resetter_ZERO_PI_PIHALF_ARB_hada(n_in_min,
-                                    n_in_max,
-                                    min_spiders,
-                                    max_spiders,
-                                    pi_fac,
-                                    pi_half_fac,
-                                    arb_fac,
-                                    p_hada,
-                                    min_mean_neighbours,
-                                    max_mean_neighbours,    
-                                    np.random.default_rng(seed+idx)) for idx in range(n_envs)]
+    resetter_list = [Resetter_ZERO_PI_PIHALF_ARB_hada(n_in_min,
+                                                      n_in_max,
+                                                      min_spiders,
+                                                      max_spiders,
+                                                      pi_fac,
+                                                      pi_half_fac,
+                                                      arb_fac,
+                                                      p_hada,
+                                                      min_mean_neighbours,
+                                                      max_mean_neighbours,
+                                                      np.random.default_rng(seed + idx)) for idx in range(n_envs)]
     # This is a dummy vector env, that executes the individual envs after each other
     env = VecZXCalculus(resetter_list,
-                        n_envs=n_envs, 
-                        max_steps=max_steps, 
+                        n_envs=n_envs,
+                        max_steps=max_steps,
                         add_reward_per_step=add_reward_per_step,
                         check_consistencty=check_consistencty,
                         dont_allow_stop=dont_allow_stop)
@@ -240,78 +230,71 @@ with strategy.scope():
     critic_model = build_gnn_critic_model(graph_tensor_spec=graph_tensor_spec)
     optimizer = keras.optimizers.Adam(learning_rate=learning_rate, epsilon=adam_epsilon, beta_1=adam_beta_1)
 
-
 # The RL Agent
 ppo_agent = PPOAgentPara(strategy=strategy,
-                     actor_model=actor_model, 
-                     critic_model=critic_model, 
-                     optimizer=optimizer, 
-                     train_iterations=train_iterations, 
-                     gamma=gamma, 
-                     lam=lam, 
-                     clip_ratio=clip_ratio, 
-                     target_kl=target_kl, 
-                     minibatch_size=minibatch_size, 
-                     ent_coeff=ent_coeff, 
-                     value_coeff=value_coeff, 
-                     grad_norm_clip=grad_norm_clip,
-                     normalize_advantages=True,
-                     abs_grad_clip=abs_grad_clip)
-
-
-
+                         actor_model=actor_model,
+                         critic_model=critic_model,
+                         optimizer=optimizer,
+                         train_iterations=train_iterations,
+                         gamma=gamma,
+                         lam=lam,
+                         clip_ratio=clip_ratio,
+                         target_kl=target_kl,
+                         minibatch_size=minibatch_size,
+                         ent_coeff=ent_coeff,
+                         value_coeff=value_coeff,
+                         grad_norm_clip=grad_norm_clip,
+                         normalize_advantages=True,
+                         abs_grad_clip=abs_grad_clip)
 
 batch_size = n_envs * max_sample_steps
 
-def train():
 
-    global_step = 0    
+def train():
+    global_step = 0
     done = np.zeros(n_envs, dtype=np.int32)
     num_updates = int(total_timesteps // batch_size)
     print(f"Number of updates: {num_updates}", flush=True)
 
-
-    observation, mask  = env.reset()
+    observation, mask = env.reset()
 
     sum_reward = 0
 
     for update in range(1, num_updates + 1):
         start_time = time.time()
         buffer.reset()
-        
+
         # Annealing
         if anneal_lr:
             frac = 1.0 - (update - 1.0) / num_updates
             lrnow = frac * learning_rate
             ppo_agent.optimizer.learning_rate.assign(lrnow)
         else:
-            lrnow=learning_rate
+            lrnow = learning_rate
 
         if anneal_entropy:
             frac = 1.0 - (update - 1.0) / num_updates
             ent_now = frac * ent_coeff
             ppo_agent.ent_coeff = ent_now
         else:
-            ent_now=ent_coeff
+            ent_now = ent_coeff
 
         if anneal_clip_range:
             frac = 1.0 - (update - 1.0) / num_updates
             clip_now = frac * clip_ratio
             ppo_agent.clip_ratio = clip_now
         else:
-            clip_now=clip_ratio
-            
+            clip_now = clip_ratio
 
         # Iterate over the steps of each epoch
         for step in range(0, max_sample_steps):
-
             global_step += 1 * n_envs
 
             # Batch graph observ ation to graph tensor and mask to tensor
             observation_batched = batch_obs_combined_traj(observation)
             mask_batched = batch_mask_combined(mask)
             # Get the logprobs, action
-            action, logprobability_t  = ppo_agent.sample_action_logits_trajectory(observation_batched, mask_batched)
+            action, logprobability_t = ppo_agent.sample_action_logits_trajectory(observation_batched, mask_batched)
             # take one step in the environment
             next_observation, next_mask, reward, next_done = env.step(action.numpy())
 
@@ -326,16 +309,13 @@ def train():
             done = next_done
             mask = next_mask
 
-
         # Next value for bootstrapping
         observation_batched = batch_obs_combined_traj(observation)
         next_value = ppo_agent.state_value(observation_batched)
 
         buffer.add_value_done(next_value, done)
 
-
         kl, pol_grad_loss, v_loss, entropy_loss, n_clipped_ratio, update_steps = ppo_agent.train(*buffer.get_episode())
-
 
         # Print mean return and length for each epoch
         mean_reward_update = np.mean(buffer.reward)
@@ -343,10 +323,10 @@ def train():
         end_time = time.time()
 
         print(
-            f" Epoch: {update}. Return: {mean_reward_update}, Mean Return: {sum_reward / update}. Time for step:{end_time-start_time}", flush=True
+            f" Epoch: {update}. Return: {mean_reward_update}, Mean Return: {sum_reward / update}. Time for step:{end_time - start_time}",
+            flush=True
         )
-        print(f"global_step={global_step}, episodic_return={np.sum(buffer.reward)/n_envs}", flush=True)
-
+        print(f"global_step={global_step}, episodic_return={np.sum(buffer.reward) / n_envs}", flush=True)
 
         # Log stuff for tensorboard
         with summary_writer.as_default():
@@ -365,13 +345,12 @@ def train():
             tf.summary.scalar("learning_rate", lrnow, step=global_step)
             tf.summary.scalar("clip_range", clip_now, step=global_step)
 
-        
             if log_episode_reward:
 
                 dones = buffer.dones.T
-                rewards= buffer.reward.T
+                rewards = buffer.reward.T
 
-                ep_rew_list=[]
+                ep_rew_list = []
                 for don, rew in zip(dones, rewards):
                     start_idx = np.argmax(don)
                     don[start_idx] = 0
@@ -380,11 +359,11 @@ def train():
                         ep_rew_list.append(rew[start_idx: end_idx])
                         don[end_idx] = 0
                         start_idx = end_idx
-           
+
                 episodes_averaged_over = len(ep_rew_list)
                 if episodes_averaged_over != 0:
                     rewards_ep_all = tf.ragged.stack(ep_rew_list)
-                    
+
                     ep_rewards_mean = tf.reduce_mean(tf.reduce_sum(rewards_ep_all, axis=-1))
                     ep_rewards_max = tf.reduce_max(tf.reduce_sum(rewards_ep_all, axis=-1))
                     ep_rewards_min = tf.reduce_min(tf.reduce_sum(rewards_ep_all, axis=-1))
@@ -398,7 +377,7 @@ def train():
                     ep_rewards_std = tf.constant(np.nan)
 
                     ep_mean_length = tf.constant(np.nan)
-                
+
                 tf.summary.scalar("ep_rewards_mean", ep_rewards_mean, step=global_step)
                 tf.summary.scalar("ep_rewards_max", ep_rewards_max, step=global_step)
                 tf.summary.scalar("ep_rewards_min", ep_rewards_min, step=global_step)
@@ -419,7 +398,6 @@ def train():
         # Save models
         if update % save_every == 0:
             ppo_agent.save(save_dir, index=update)
+
+
 train()
-
-
-
