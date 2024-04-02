@@ -46,6 +46,8 @@ class ZXCalculus():
         self.previous_spiders = self.n_spiders
         self.current_spiders = self.n_spiders
         self.step_counter = 0
+        self.max_edges = self.n_edges
+        self.max_spiders = self.n_spiders
 
     def reset(self) -> tuple:
         '''
@@ -73,7 +75,8 @@ class ZXCalculus():
         # For keep track of previous spiders for reward function
         self.previous_spiders = self.n_spiders
         self.current_spiders = self.n_spiders
-
+        self.max_spiders = self.n_spiders
+        self.max_edges = self.n_edges
         return self.get_observation_mask()
 
     @property
@@ -182,15 +185,22 @@ class ZXCalculus():
             ## Calculate the reward
             self.previous_spiders = self.current_spiders
             self.current_spiders = self.n_spiders
+            self.current_edges = self.n_edges
+            self.max_spiders = max(self.n_spiders, self.max_spiders)
+            self.max_edges = max(self.n_edges, self.max_edges)
             reward = self.delta_spiders()
 
             # return observation, mask, reward, done
             observation, mask = self.get_observation_mask()
             return observation, mask, reward + self.add_reward_per_step, 0
 
-    def delta_spiders(self) -> int:
+    def delta_spiders_old(self) -> int:
         """returns reward"""
         return self.previous_spiders - self.current_spiders
+
+    def delta_spiders(self) -> float:
+        """returns reward"""
+        return pow(self.max_spiders / self.current_spiders, self.max_edges / self.current_edges)
 
 
 def save(colors: np.ndarray, angles: np.ndarray, selected_node: np.ndarray,
