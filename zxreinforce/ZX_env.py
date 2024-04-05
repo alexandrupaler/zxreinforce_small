@@ -200,7 +200,7 @@ class ZXCalculus():
 
     def delta_spiders(self) -> float:
         """returns reward"""
-        return pow(self.max_spiders / self.current_spiders, self.max_edges / self.current_edges)
+        return (self.max_spiders / self.current_spiders) * (self.max_edges / self.current_edges)
 
 
 def save(colors: np.ndarray, angles: np.ndarray, selected_node: np.ndarray,
