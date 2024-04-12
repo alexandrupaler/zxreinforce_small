@@ -4,7 +4,7 @@
 ssh -L localhost:8889:REMOTE:8889 user@REMOTE
 
 # docker with port forwarding
-docker run -it --gpus all --runtime nvidia -p 8889:8889 NAME /bin/bash -c "cd zxreinforce_small; jupyter notebook --no-browser --ip=0.0.0.0"
+docker run -it --gpus all --runtime nvidia -p 8889:8889 NAME /bin/bash -c "cd zxreinforce_small; jupyter notebook --no-browser --ip=0.0.0.0 --port=8889 --allow-root"
 
 # in the Docker (or start the docker with this command)
 jupyter notebook --no-browser --ip=0.0.0.0
