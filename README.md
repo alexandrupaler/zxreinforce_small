@@ -1,3 +1,21 @@
+## Jupyter Notebooks from the Docker
+```
+# port forwarding
+ssh -L localhost:8889:REMOTE:8889 user@REMOTE
+
+# docker with port forwarding
+docker run -it --gpus all --runtime nvidia -p 8889:8889 NAME /bin/bash -c "cd zxreinforce_small; jupyter notebook --no-browser --ip=0.0.0.0"
+
+# in the Docker (or start the docker with this command)
+jupyter notebook --no-browser --ip=0.0.0.0
+```
+
+## Once image is there, start training
+```
+docker run -d --gpus all --runtime=nvidia NAME /bin/bash -c "cd zxreinforce_small; git pull; cd experiments/train_rl_agent ; python3.10 runner_final.py"
+```
+
+
 ## Preparing a Docker image to run the code
 
 We need the TF2.12 Docker image
